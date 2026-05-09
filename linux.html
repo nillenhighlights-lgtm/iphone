@@ -1,0 +1,278 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="description" content="Подключение Балдёж VPN на Linux через Hiddify или v2rayA">
+<meta name="theme-color" content="#0a0e16">
+<title>Балдёж VPN — Инструкция для Linux</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0a0e16; --bg-2: #131826; --surface: #1a2030;
+    --border: #2a3147; --text: #e8edf5; --text-muted: #8892a4;
+    --accent: #f97316; --accent-glow: rgba(249, 115, 22, 0.4); --accent-2: #fbbf24;
+    --warning: #f59e0b; --radius: 14px;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+  html { scroll-behavior: smooth; }
+  body {
+    font-family: 'Manrope', system-ui, sans-serif;
+    background: var(--bg); color: var(--text); line-height: 1.55; min-height: 100vh;
+    background-image:
+      radial-gradient(circle at 20% 0%, rgba(249, 115, 22, 0.4) 0%, transparent 50%),
+      radial-gradient(circle at 80% 100%, rgba(255,255,255,0.04), transparent 50%);
+    background-attachment: fixed;
+  }
+  code, .mono { font-family: 'JetBrains Mono', 'Menlo', monospace; }
+  code { background: rgba(255,255,255,0.06); padding: 2px 6px; border-radius: 4px; font-size: 0.9em; }
+  .nav {
+    position: sticky; top: 0; z-index: 50;
+    background: rgba(10,14,22,0.85); backdrop-filter: blur(20px);
+    border-bottom: 1px solid var(--border); padding: 14px 24px;
+  }
+  .nav-inner { max-width: 800px; margin: 0 auto; display: flex; align-items: center; justify-content: space-between; gap: 16px; }
+  .logo { font-weight: 800; font-size: 18px; letter-spacing: -0.01em; display: flex; align-items: center; gap: 8px; }
+  .logo-emoji { font-size: 22px; }
+  .logo-accent { color: var(--accent); }
+  .platform-pills { display: flex; gap: 6px; flex-wrap: wrap; }
+  .pill {
+    padding: 6px 12px; border-radius: 99px; font-size: 12px;
+    color: var(--text-muted); text-decoration: none;
+    border: 1px solid var(--border); transition: all 0.2s;
+  }
+  .pill:hover { color: var(--text); border-color: var(--accent); }
+  .pill.active { background: var(--accent); color: white; border-color: var(--accent); }
+
+  .hero { max-width: 800px; margin: 0 auto; padding: 64px 24px 48px; text-align: center; }
+  .hero-badge {
+    display: inline-flex; align-items: center; gap: 8px; padding: 8px 16px;
+    border-radius: 99px; background: rgba(255,255,255,0.05);
+    border: 1px solid rgba(255,255,255,0.1); color: var(--accent-2);
+    font-size: 13px; font-weight: 500; margin-bottom: 20px;
+  }
+  .hero h1 {
+    font-size: clamp(36px, 6vw, 56px); font-weight: 800;
+    letter-spacing: -0.03em; line-height: 1.05; margin-bottom: 16px;
+  }
+  .hero h1 span {
+    background: linear-gradient(135deg, var(--accent-2) 0%, white 100%);
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+  .hero-sub { font-size: 18px; color: var(--text-muted); max-width: 540px; margin: 0 auto; }
+  .hero-stats { display: flex; justify-content: center; gap: 32px; margin-top: 32px; flex-wrap: wrap; }
+  .hero-stat-value { font-size: 24px; font-weight: 700; color: var(--accent); }
+  .hero-stat-label { font-size: 13px; color: var(--text-muted); margin-top: 2px; }
+
+  .container { max-width: 720px; margin: 0 auto; padding: 0 24px 80px; }
+
+  .step {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: var(--radius); padding: 28px;
+    margin-bottom: 16px; position: relative; transition: border-color 0.3s;
+  }
+  .step:hover { border-color: rgba(255,255,255,0.15); }
+  .step-number {
+    position: absolute; top: -14px; left: 24px;
+    background: var(--accent); color: white;
+    width: 32px; height: 32px; border-radius: 50%;
+    display: grid; place-items: center; font-weight: 700; font-size: 14px;
+    box-shadow: 0 0 24px var(--accent-glow);
+  }
+  .step-title { font-size: 20px; font-weight: 700; margin-bottom: 12px; margin-top: 4px; letter-spacing: -0.01em; }
+  .step-body { color: var(--text-muted); font-size: 15px; }
+  .step-body p + p, .step-body p + .alert, .step-body p + .screenshot-placeholder { margin-top: 12px; }
+  .step-body strong { color: var(--text); font-weight: 600; }
+
+  .btn {
+    display: inline-flex; align-items: center; gap: 10px;
+    padding: 12px 20px; margin-top: 16px;
+    background: var(--accent); color: white;
+    border-radius: 10px; text-decoration: none;
+    font-weight: 600; font-size: 14px;
+    transition: all 0.2s; box-shadow: 0 4px 16px var(--accent-glow);
+  }
+  .btn:hover { transform: translateY(-1px); box-shadow: 0 8px 24px var(--accent-glow); }
+  .btn-secondary { background: transparent; color: var(--text); border: 1px solid var(--border); box-shadow: none; }
+  .btn-secondary:hover { border-color: var(--accent); }
+
+  .alert {
+    margin-top: 12px; padding: 14px 16px;
+    background: rgba(245, 158, 11, 0.08);
+    border-left: 3px solid var(--warning);
+    border-radius: 8px; font-size: 14px; color: var(--text);
+  }
+  .alert-info { background: rgba(255,255,255,0.04); border-left-color: var(--accent); }
+
+  .screenshot-placeholder {
+    margin-top: 12px; padding: 16px 20px;
+    background: var(--bg-2); border: 1px dashed var(--border);
+    border-radius: 10px; color: var(--text-muted);
+    font-size: 13px; word-break: break-all;
+  }
+
+  .faq { margin-top: 48px; }
+  .faq-title { font-size: 24px; font-weight: 700; margin-bottom: 20px; letter-spacing: -0.02em; }
+  details {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 10px; margin-bottom: 8px; overflow: hidden;
+  }
+  summary {
+    padding: 16px 20px; cursor: pointer; font-weight: 600;
+    list-style: none; display: flex; align-items: center;
+    justify-content: space-between; gap: 12px;
+  }
+  summary::-webkit-details-marker { display: none; }
+  summary::after { content: '+'; font-size: 20px; color: var(--text-muted); transition: transform 0.2s; }
+  details[open] summary::after { transform: rotate(45deg); }
+  .faq-body { padding: 0 20px 16px; color: var(--text-muted); font-size: 14px; line-height: 1.6; }
+
+  .footer {
+    text-align: center; padding: 40px 24px;
+    color: var(--text-muted); font-size: 13px;
+    border-top: 1px solid var(--border);
+  }
+  .footer strong { color: var(--text); }
+
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+  .step { animation: fadeUp 0.4s ease backwards; }
+  .step:nth-child(1) { animation-delay: 0.05s; }
+  .step:nth-child(2) { animation-delay: 0.1s; }
+  .step:nth-child(3) { animation-delay: 0.15s; }
+  .step:nth-child(4) { animation-delay: 0.2s; }
+  .step:nth-child(5) { animation-delay: 0.25s; }
+  .step:nth-child(6) { animation-delay: 0.3s; }
+
+  @media (max-width: 600px) {
+    .step { padding: 24px 18px; }
+    .hero { padding: 40px 20px 32px; }
+    .hero-stats { gap: 20px; }
+  }
+</style>
+</head>
+<body>
+
+<nav class="nav">
+  <div class="nav-inner">
+    <div class="logo"><span class="logo-emoji">🌴</span> Балдёж <span class="logo-accent">VPN</span></div>
+    <div class="platform-pills">
+      <a href="ios.html" class="pill">iOS</a>
+      <a href="android.html" class="pill">Android</a>
+      <a href="windows.html" class="pill">Windows</a>
+      <a href="linux.html" class="pill active">Linux</a>
+    </div>
+  </div>
+</nav>
+
+<header class="hero">
+  <div class="hero-badge">🐧 Ubuntu, Debian, Arch, Fedora и другие</div>
+  <h1>Установка <span>на Linux</span></h1>
+  <p class="hero-sub">Hiddify Next — самый удобный GUI для всех дистрибутивов. AppImage запускается одним кликом без установки.</p>
+  <div class="hero-stats">
+    <div><div class="hero-stat-value">~10 мин</div><div class="hero-stat-label">время установки</div></div>
+    <div><div class="hero-stat-value">x86_64</div><div class="hero-stat-label">архитектура</div></div>
+    <div><div class="hero-stat-value">Open Source</div><div class="hero-stat-label">все компоненты</div></div>
+  </div>
+</header>
+
+<main class="container">
+<article class="step">
+    <div class="step-number">1</div>
+    <h2 class="step-title">Скачай Hiddify Next AppImage</h2>
+    <div class="step-body">
+      <p>Открой страницу релизов на GitHub и скачай <code>Hiddify-Linux-x64.AppImage</code> (~80 МБ). Универсальный формат для любого дистрибутива.</p>
+      <a class="btn" href="https://github.com/hiddify/hiddify-next/releases/latest" target="_blank" rel="noopener">Скачать с GitHub →</a>
+      <div class="alert alert-info">💡 Альтернатива — <strong>v2rayA</strong> через CLI:<br><code>sudo apt install v2raya</code> на Debian/Ubuntu<br><code>yay -S v2raya</code> на Arch</div>
+    </div>
+  </article>
+
+<article class="step">
+    <div class="step-number">2</div>
+    <h2 class="step-title">Сделай файл исполняемым</h2>
+    <div class="step-body">
+      <p>В терминале в папке со скачанным файлом:</p>
+      <div class="screenshot-placeholder"><code>chmod +x Hiddify-Linux-x64.AppImage</code></div>
+      <p>Или через файловый менеджер: ПКМ → <strong>Свойства</strong> → <strong>«Права»</strong> → галочка <strong>«Разрешить выполнение»</strong>.</p>
+    </div>
+  </article>
+
+<article class="step">
+    <div class="step-number">3</div>
+    <h2 class="step-title">Скопируй свою подписку из бота</h2>
+    <div class="step-body">
+      <p>В Telegram-боте <strong>Балдёж VPN</strong> нажми <strong>«📡 Моя подписка»</strong>. Скопируй ссылку:</p>
+      <div class="screenshot-placeholder"><code>https://sub.spotsub.ru/sub/abc123def456...</code></div>
+      <div class="alert alert-info">💡 Эта ссылка <strong>уникальная для тебя</strong>. Никому её не давай.</div>
+    </div>
+  </article>
+
+<article class="step">
+    <div class="step-number">4</div>
+    <h2 class="step-title">Запусти Hiddify и добавь подписку</h2>
+    <div class="step-body">
+      <p>Двойной клик по AppImage. Если не запускается — из терминала: <code>./Hiddify-Linux-x64.AppImage</code>.</p>
+      <p>В программе нажми <strong>«+»</strong> → <strong>«From Clipboard»</strong>. Hiddify вставит ссылку и загрузит сервера.</p>
+    </div>
+  </article>
+
+<article class="step">
+    <div class="step-number">5</div>
+    <h2 class="step-title">Подключись к серверу</h2>
+    <div class="step-body">
+      <p>На главном экране — список серверов. Тапни любой → <strong>Connect</strong>.</p>
+      <div class="alert">⚠️ Hiddify использует <strong>TUN-режим</strong> — нужны root-права. При первом подключении система запросит пароль <code>sudo</code>. Если sudo недоступен — переключи режим в <strong>Settings → Tunnel Mode → System Proxy</strong>.</div>
+    </div>
+  </article>
+
+<article class="step">
+    <div class="step-number">6</div>
+    <h2 class="step-title">Проверь, что всё работает</h2>
+    <div class="step-body">
+      <p>В браузере зайди на <code>2ip.ru</code> или из терминала: <code>curl ifconfig.me</code> — должен показать IP сервера VPN.</p>
+      <a class="btn btn-secondary" href="https://2ip.ru" target="_blank" rel="noopener">Проверить IP →</a>
+    </div>
+  </article>
+
+  <section class="faq">
+    <h2 class="faq-title">Частые вопросы</h2>
+    <details>
+      <summary>AppImage не запускается, ошибка про FUSE</summary>
+      <div class="faq-body">Установи библиотеку FUSE2:<br>Ubuntu/Debian: <code>sudo apt install libfuse2</code><br>Fedora: <code>sudo dnf install fuse-libs</code><br>Arch: <code>sudo pacman -S fuse2</code></div>
+    </details>
+    <details>
+      <summary>Hiddify запустился, но не показывает GUI</summary>
+      <div class="faq-body">Возможно, не хватает GTK-зависимостей: <code>sudo apt install libgtk-3-0 libwebkit2gtk-4.1-0</code>. На Wayland попробуй: <code>GDK_BACKEND=x11 ./Hiddify-Linux-x64.AppImage</code>.</div>
+    </details>
+    <details>
+      <summary>Использовать без GUI (только из терминала)</summary>
+      <div class="faq-body">Поставь <strong>v2rayA</strong>: <code>sudo apt install v2raya</code> → <code>sudo systemctl start v2raya</code> → зайди в браузер на <code>http://localhost:2017</code> и добавь подписку.</div>
+    </details>
+    <details>
+      <summary>Не хочу AppImage — есть .deb или .rpm?</summary>
+      <div class="faq-body">Hiddify Next выкладывает только <code>.AppImage</code>. Альтернатива — <strong>v2rayA</strong> в основных репозиториях Debian/Ubuntu и Arch. Это полноценная альтернатива.</div>
+    </details>
+    <details>
+      <summary>Можно ли использовать на нескольких устройствах?</summary>
+      <div class="faq-body">Да, на одной подписке работают одновременно <strong>3 устройства</strong>. Лимит общий для всех платформ.</div>
+    </details>
+    <details>
+      <summary>Автозапуск при входе в систему</summary>
+      <div class="faq-body">Создай файл <code>~/.config/autostart/hiddify.desktop</code> со строкой <code>Exec=/path/to/Hiddify-Linux-x64.AppImage</code>. Или через настройки рабочего стола (GNOME/KDE).</div>
+    </details>
+  </section>
+
+</main>
+
+<footer class="footer">
+  <p>🌴 <strong>Балдёж VPN</strong> — твой стабильный доступ в свободный интернет</p>
+  <p style="margin-top: 8px">Проблемы? Пиши в бота → <strong>Поддержка</strong></p>
+</footer>
+
+</body>
+</html>
